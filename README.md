@@ -1,6 +1,16 @@
-# brew-ui
+# brew-potato
 
-A polished terminal UI for managing Homebrew packages, built with [Bubble Tea](https://github.com/charmbracelet/bubbletea).
+A terminal UI for managing Homebrew packages, built with [Bubble Tea](https://github.com/charmbracelet/bubbletea).
+
+## Why
+
+I use Homebrew constantly on my Mac. `brew list` dumps everything — your packages, their dependencies, transitive dependencies, all tangled together. There's no easy way to just see what *you* actually installed.
+
+I knew about alternatives. Nix exists. There's even a Homebrew rewrite in Rust (zerobrew). I tried them, forgot about them, went back to `brew`.
+
+So I built this to scratch my own itch: show only user-installed packages, nothing else.
+
+Also I was learning Go and needed a real project to practice on. This is that project.
 
 ## Features
 
@@ -24,8 +34,8 @@ go run .
 ## Build
 
 ```sh
-go build -o brew-ui .
-./brew-ui
+go build -o brew-potato .
+./brew-potato
 ```
 
 ## Project Structure
