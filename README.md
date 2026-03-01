@@ -4,7 +4,7 @@ A terminal UI for managing Homebrew packages, built with [Bubble Tea](https://gi
 
 ## Why
 
-`brew list` dumps everything: your packages, their dependencies, transitive dependencies, all tangled together. There's no built-in way to see what *you* actually installed.
+`brew list` dumps everything: your packages, their dependencies, transitive dependencies, all tangled together. There's no built-in way to see what _you_ actually installed.
 
 I knew the alternatives. Nix exists. There's even a Homebrew rewrite in Rust (zerobrew). I tried them, forgot about them, and went back to `brew`.
 
@@ -16,7 +16,7 @@ Full-screen TUI with a rounded table border and styled header and footer. Lists 
 
 If `brew` isn't available, it tells you cleanly instead of dumping a stack trace on you.
 
-![brew-potato UI](images/UI.png)
+![brew-potato UI](https://res.cloudinary.com/dnmuyrcd7/image/upload/UI_ofnace.png)
 
 ## Requirements
 
@@ -60,7 +60,7 @@ brew-ui/
 ## Keybindings
 
 | Key       | Action             |
-|-----------|--------------------|
+| --------- | ------------------ |
 | `↑` / `↓` | Navigate packages  |
 | `d`       | Uninstall selected |
 | `q`       | Quit               |
