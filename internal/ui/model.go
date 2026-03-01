@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"github.com/charmbracelet/bubbles/spinner"
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/spinner"
+	"charm.land/bubbles/v2/table"
+	tea "charm.land/bubbletea/v2"
 
 	"github.com/mrSamDev/brew-ui-potato/internal/brew"
 )
@@ -20,6 +20,9 @@ const (
 	initialHeight = 20
 	// heightOffset accounts for title, border, and footer rows.
 	heightOffset = 7
+
+	// dialogPaddingH is the horizontal padding inside the confirmation dialog border.
+	dialogPaddingH = 2
 )
 
 type uninstallDoneMsg struct {
@@ -27,23 +30,29 @@ type uninstallDoneMsg struct {
 	err error
 }
 
-// Model is the root Bubble Tea model.
-type Model struct {
-	table      table.Model
-	packages   []brew.Package
-	rowStatus  []string
-	spinner    spinner.Model
-	isLoading  bool
-	loadingPkg string
-	err        error
+type packagesLoadedMsg struct {
+	packages []brew.Package
+	err      error
 }
 
-// InitialModel loads brew data and returns the starting model.
+// Model is the root Bubble Tea model.
+type Model struct {
+	table            table.Model
+	packages         []brew.Package
+	rowStatus        []string
+	spinner          spinner.Model
+	isInitialLoading bool
+	isLoading        bool
+	isConfirming     bool
+	isShowingAbout   bool
+	confirmIdx       int
+	loadingPkg       string
+	err              error
+	width            int
+}
+
+// InitialModel returns the starting model; package fetching happens in Init.
 func InitialModel() Model {
-	pkgs, err := brew.FetchPackages()
-
-	rowStatus := make([]string, len(pkgs))
-
 	columns := []table.Column{
 		{Title: "Package", Width: colWidthPackage},
 		{Title: "Installed", Width: colWidthInstalled},
@@ -52,7 +61,7 @@ func InitialModel() Model {
 
 	t := table.New(
 		table.WithColumns(columns),
-		table.WithRows(buildRows(pkgs, rowStatus)),
+		table.WithRows([]table.Row{}),
 		table.WithFocused(true),
 		table.WithHeight(initialHeight),
 		table.WithStyles(tableStyles),
@@ -62,11 +71,9 @@ func InitialModel() Model {
 	s.Spinner = spinner.Dot
 
 	return Model{
-		table:     t,
-		packages:  pkgs,
-		rowStatus: rowStatus,
-		spinner:   s,
-		err:       err,
+		table:            t,
+		spinner:          s,
+		isInitialLoading: true,
 	}
 }
 
@@ -95,12 +102,18 @@ func buildRows(pkgs []brew.Package, status []string) []table.Row {
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return tea.Batch(
+		func() tea.Msg {
+			pkgs, err := brew.FetchPackages()
+			return packagesLoadedMsg{packages: pkgs, err: err}
+		},
+		m.spinner.Tick,
+	)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.err != nil {
-		if k, ok := msg.(tea.KeyMsg); ok && (k.String() == "q" || k.String() == "ctrl+c") {
+		if k, ok := msg.(tea.KeyPressMsg); ok && (k.String() == "q" || k.String() == "ctrl+c") {
 			return m, tea.Quit
 		}
 		return m, nil
@@ -108,21 +121,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.table.SetWidth(colWidthPackage + colWidthInstalled + colWidthStatus)
 		m.table.SetHeight(msg.Height - heightOffset)
 		return m, nil
+	case packagesLoadedMsg:
+		return m.onPackagesLoaded(msg)
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 	case uninstallDoneMsg:
 		return m.onUninstallDone(msg)
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		return m.handleKey(msg)
 	}
 
 	var cmd tea.Cmd
 	m.table, cmd = m.table.Update(msg)
 	return m, cmd
+}
+
+func (m Model) onPackagesLoaded(msg packagesLoadedMsg) (tea.Model, tea.Cmd) {
+	m.isInitialLoading = false
+	if msg.err != nil {
+		m.err = msg.err
+		return m, nil
+	}
+	m.packages = msg.packages
+	m.rowStatus = make([]string, len(msg.packages))
+	m.table.SetRows(buildRows(m.packages, m.rowStatus))
+	return m, nil
 }
 
 func (m Model) onUninstallDone(msg uninstallDoneMsg) (tea.Model, tea.Cmd) {
@@ -137,19 +166,53 @@ func (m Model) onUninstallDone(msg uninstallDoneMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	if m.isConfirming {
+		return m.handleConfirmKey(msg)
+	}
+	if m.isShowingAbout {
+		return m.handleAboutKey(msg)
+	}
 	switch msg.String() {
 	case "q", "ctrl+c":
 		return m, tea.Quit
+	case "?":
+		m.isShowingAbout = true
+		return m, nil
 	case "d":
-		if m.isLoading || m.rowStatus[m.table.Cursor()] != rowNone {
+		if m.isLoading || m.isInitialLoading || len(m.packages) == 0 || m.rowStatus[m.table.Cursor()] != rowNone {
 			return m, nil
 		}
-		return m.startUninstall(m.table.Cursor())
+		m.isConfirming = true
+		m.confirmIdx = m.table.Cursor()
+		return m, nil
 	}
 	var cmd tea.Cmd
 	m.table, cmd = m.table.Update(msg)
 	return m, cmd
+}
+
+func (m Model) handleAboutKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "q", "ctrl+c":
+		return m, tea.Quit
+	case "esc", "?", "b":
+		m.isShowingAbout = false
+		return m, nil
+	}
+	return m, nil
+}
+
+func (m Model) handleConfirmKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "y", "enter":
+		m.isConfirming = false
+		return m.startUninstall(m.confirmIdx)
+	case "n", "esc", "q", "ctrl+c":
+		m.isConfirming = false
+		return m, nil
+	}
+	return m, nil
 }
 
 func (m Model) startUninstall(idx int) (tea.Model, tea.Cmd) {

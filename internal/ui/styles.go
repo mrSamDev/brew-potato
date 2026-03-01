@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"github.com/charmbracelet/bubbles/table"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/table"
+	"charm.land/lipgloss/v2"
 )
 
 var (
@@ -32,6 +32,20 @@ var (
 	errorStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("9")).
 			Bold(true)
+
+	dialogStyle = lipgloss.NewStyle().
+			BorderStyle(lipgloss.RoundedBorder()).
+			BorderForeground(colorBorder).
+			Padding(1, dialogPaddingH)
+
+	dialogWarningStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("9")).
+				Bold(true)
+
+	keyHintStyle = lipgloss.NewStyle().
+			Foreground(colorAccent).
+			Background(lipgloss.Color("236")).
+			Padding(0, 1)
 
 	tableStyles = func() table.Styles {
 		s := table.DefaultStyles()
