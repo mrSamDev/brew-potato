@@ -13,3 +13,5 @@ brew-ui
 # Go
 *.test
 *.out
+
+.claude

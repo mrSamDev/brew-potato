@@ -20,6 +20,14 @@ Full-screen TUI with a rounded table border and styled header and footer. Lists 
 
 If `brew` isn't available, it tells you cleanly instead of dumping a stack trace on you.
 
+## Built With
+
+| Library | Purpose |
+| ------- | ------- |
+| [Bubble Tea](https://github.com/charmbracelet/bubbletea) | TUI framework (Elm architecture) |
+| [Bubbles](https://github.com/charmbracelet/bubbles) | Table and spinner components |
+| [Lip Gloss](https://github.com/charmbracelet/lipgloss) | Styles and layout |
+
 ![brew-potato UI](https://res.cloudinary.com/dnmuyrcd7/image/upload/UI_ofnace.png)
 
 ## Requirements
@@ -67,6 +75,7 @@ brew-ui/
 | --------- | ------------------ |
 | `↑` / `↓` | Navigate packages  |
 | `d`       | Uninstall selected |
+| `?`       | Show credits       |
 | `q`       | Quit               |
 
 ## License

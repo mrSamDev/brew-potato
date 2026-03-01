@@ -10,7 +10,7 @@ func TestView_withError(t *testing.T) {
 	m := newTestModel(nil)
 	m.err = errors.New("command not found: brew")
 
-	view := m.View()
+	view := m.View().Content
 
 	if !strings.Contains(view, "Failed to load brew data:") {
 		t.Error("error view should contain error header")
@@ -26,9 +26,9 @@ func TestView_withError(t *testing.T) {
 func TestView_normalState(t *testing.T) {
 	m := newTestModel(testPkgs)
 
-	view := m.View()
+	view := m.View().Content
 
-	if !strings.Contains(view, "Brew Packages") {
+	if !strings.Contains(view, "Brew Potato") {
 		t.Error("normal view should contain the title")
 	}
 	if !strings.Contains(view, "↑/↓  navigate") {
@@ -44,7 +44,7 @@ func TestView_loadingState(t *testing.T) {
 	m.isLoading = true
 	m.loadingPkg = "testpkg"
 
-	view := m.View()
+	view := m.View().Content
 
 	if !strings.Contains(view, "Uninstalling testpkg") {
 		t.Errorf("loading view should contain package name, got:\n%s", view)
@@ -52,5 +52,52 @@ func TestView_loadingState(t *testing.T) {
 	// Navigation hints should not appear while loading
 	if strings.Contains(view, "↑/↓  navigate") {
 		t.Error("loading view should not show navigation hint")
+	}
+}
+
+func TestView_aboutState(t *testing.T) {
+	m := newTestModel(testPkgs)
+	m.isShowingAbout = true
+
+	view := m.View().Content
+
+	if !strings.Contains(view, "Built with") {
+		t.Error("about view should contain 'Built with'")
+	}
+	if !strings.Contains(view, "Bubble Tea") {
+		t.Error("about view should contain 'Bubble Tea'")
+	}
+	if !strings.Contains(view, "Bubbles") {
+		t.Error("about view should contain 'Bubbles'")
+	}
+	if !strings.Contains(view, "Lip Gloss") {
+		t.Error("about view should contain 'Lip Gloss'")
+	}
+	if strings.Contains(view, "↑/↓  navigate") {
+		t.Error("about view should not show navigation hint")
+	}
+}
+
+func TestView_confirmingState(t *testing.T) {
+	m := newTestModel(testPkgs)
+	m.isConfirming = true
+	m.confirmIdx = 1 // "wget"
+
+	view := m.View().Content
+
+	if !strings.Contains(view, "Uninstall") {
+		t.Error("confirming view should contain uninstall prompt")
+	}
+	if !strings.Contains(view, "wget") {
+		t.Error("confirming view should contain the package name")
+	}
+	if !strings.Contains(view, "confirm") {
+		t.Error("confirming view should contain confirm hint")
+	}
+	if !strings.Contains(view, "cancel") {
+		t.Error("confirming view should contain cancel hint")
+	}
+	if strings.Contains(view, "↑/↓  navigate") {
+		t.Error("confirming view should not show navigation hint")
 	}
 }

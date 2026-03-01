@@ -13,14 +13,18 @@ type Package struct {
 	InstalledDate string
 }
 
+type installEntry struct {
+	Time               int64 `json:"time"`
+	InstalledOnRequest bool  `json:"installed_on_request"`
+}
+
+type formula struct {
+	Name      string         `json:"name"`
+	Installed []installEntry `json:"installed"`
+}
+
 type apiResponse struct {
-	Formulae []struct {
-		Name      string `json:"name"`
-		Installed []struct {
-			Time               int64 `json:"time"`
-			InstalledOnRequest bool  `json:"installed_on_request"`
-		} `json:"installed"`
-	} `json:"formulae"`
+	Formulae []formula `json:"formulae"`
 }
 
 // FetchPackages returns all user-installed Homebrew formulae.
@@ -35,21 +39,45 @@ func FetchPackages() ([]Package, error) {
 		return nil, fmt.Errorf("parse brew output: %w", err)
 	}
 
+	pkgs := filterOnRequest(resp.Formulae)
+
+	if len(pkgs) == 0 {
+		// fall back to all installed formulae when installed_on_request is not
+		// set (older homebrew or packages installed via scripts)
+		pkgs = filterAllInstalled(resp.Formulae)
+	}
+	return pkgs, nil
+}
+
+func filterOnRequest(formulae []formula) []Package {
 	var pkgs []Package
-	for _, f := range resp.Formulae {
+	for _, f := range formulae {
 		if len(f.Installed) == 0 {
 			continue
 		}
-		install := f.Installed[0]
-		if !install.InstalledOnRequest {
+		if !f.Installed[0].InstalledOnRequest {
 			continue
 		}
 		pkgs = append(pkgs, Package{
 			Name:          f.Name,
-			InstalledDate: time.Unix(install.Time, 0).Format("2006-01-02"),
+			InstalledDate: time.Unix(f.Installed[0].Time, 0).Format("2006-01-02"),
 		})
 	}
-	return pkgs, nil
+	return pkgs
+}
+
+func filterAllInstalled(formulae []formula) []Package {
+	var pkgs []Package
+	for _, f := range formulae {
+		if len(f.Installed) == 0 {
+			continue
+		}
+		pkgs = append(pkgs, Package{
+			Name:          f.Name,
+			InstalledDate: time.Unix(f.Installed[0].Time, 0).Format("2006-01-02"),
+		})
+	}
+	return pkgs
 }
 
 func Uninstall(pkg string) error {

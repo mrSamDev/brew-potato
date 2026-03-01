@@ -172,6 +172,30 @@
         font-size: 0.88rem;
       }
 
+      /* ─── built with ─────────────────────────── */
+
+      .built-with {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .lib-row {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+      }
+
+      .lib-row a {
+        min-width: 100px;
+        font-size: 0.88rem;
+      }
+
+      .lib-desc {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
       /* ─── footer / links ─────────────────────── */
 
       .footer {
@@ -270,8 +294,31 @@
             <span class="key-desc">uninstall selected</span>
           </div>
           <div class="key-row">
+            <kbd>?</kbd>
+            <span class="key-desc">show credits</span>
+          </div>
+          <div class="key-row">
             <kbd>q</kbd>
             <span class="key-desc">quit</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- built with -->
+      <section class="section">
+        <div class="section-label">built with</div>
+        <div class="built-with">
+          <div class="lib-row">
+            <a href="https://github.com/charmbracelet/bubbletea" target="_blank" rel="noopener">Bubble Tea</a>
+            <span class="lib-desc">TUI framework (Elm architecture)</span>
+          </div>
+          <div class="lib-row">
+            <a href="https://github.com/charmbracelet/bubbles" target="_blank" rel="noopener">Bubbles</a>
+            <span class="lib-desc">Table and spinner components</span>
+          </div>
+          <div class="lib-row">
+            <a href="https://github.com/charmbracelet/lipgloss" target="_blank" rel="noopener">Lip Gloss</a>
+            <span class="lib-desc">Styles and layout</span>
           </div>
         </div>
       </section>

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/charmbracelet/bubbles/spinner"
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/spinner"
+	"charm.land/bubbles/v2/table"
+	tea "charm.land/bubbletea/v2"
 
 	"github.com/mrSamDev/brew-ui-potato/internal/brew"
 )
@@ -86,10 +86,44 @@ func TestBuildRows_deletedStatus(t *testing.T) {
 	}
 }
 
-func TestInit_returnsNil(t *testing.T) {
+func TestInit_returnsCmd(t *testing.T) {
 	m := newTestModel(testPkgs)
-	if cmd := m.Init(); cmd != nil {
-		t.Error("Init should return nil")
+	m.isInitialLoading = true
+	if cmd := m.Init(); cmd == nil {
+		t.Error("Init should return a non-nil fetch command")
+	}
+}
+
+func TestUpdate_packagesLoaded(t *testing.T) {
+	m := newTestModel(nil)
+	m.isInitialLoading = true
+
+	newM, cmd := m.Update(packagesLoadedMsg{packages: testPkgs})
+
+	if cmd != nil {
+		t.Error("packagesLoadedMsg should return nil cmd")
+	}
+	updated := mustModel(t, newM)
+	if updated.isInitialLoading {
+		t.Error("isInitialLoading should be false after packages loaded")
+	}
+	if len(updated.packages) != len(testPkgs) {
+		t.Errorf("packages len = %d, want %d", len(updated.packages), len(testPkgs))
+	}
+}
+
+func TestUpdate_packagesLoaded_error(t *testing.T) {
+	m := newTestModel(nil)
+	m.isInitialLoading = true
+
+	newM, _ := m.Update(packagesLoadedMsg{err: errors.New("brew failed")})
+
+	updated := mustModel(t, newM)
+	if updated.isInitialLoading {
+		t.Error("isInitialLoading should be false even on error")
+	}
+	if updated.err == nil {
+		t.Error("err should be set when packagesLoadedMsg contains an error")
 	}
 }
 
@@ -108,10 +142,10 @@ func TestUpdate_windowResize(t *testing.T) {
 func TestUpdate_errorState_quitsOnQuitKeys(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  tea.KeyMsg
+		msg  tea.KeyPressMsg
 	}{
-		{"q", tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}}},
-		{"ctrl+c", tea.KeyMsg{Type: tea.KeyCtrlC}},
+		{"q", tea.KeyPressMsg{Code: 'q'}},
+		{"ctrl+c", tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl}},
 	}
 
 	for _, tt := range tests {
@@ -134,7 +168,7 @@ func TestUpdate_errorState_ignoresOtherKeys(t *testing.T) {
 	m := newTestModel(nil)
 	m.err = errors.New("brew failed")
 
-	_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	_, cmd := m.Update(tea.KeyPressMsg{Code: 'd'})
 	if cmd != nil {
 		t.Error("non-quit key in error state should return nil cmd")
 	}
@@ -182,10 +216,10 @@ func TestUpdate_uninstallDone_failure(t *testing.T) {
 func TestHandleKey_quitKeys(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  tea.KeyMsg
+		msg  tea.KeyPressMsg
 	}{
-		{"q", tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}}},
-		{"ctrl+c", tea.KeyMsg{Type: tea.KeyCtrlC}},
+		{"q", tea.KeyPressMsg{Code: 'q'}},
+		{"ctrl+c", tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl}},
 	}
 
 	for _, tt := range tests {
@@ -203,20 +237,20 @@ func TestHandleKey_quitKeys(t *testing.T) {
 	}
 }
 
-func TestHandleKey_delete_setsUninstalling(t *testing.T) {
+func TestHandleKey_delete_opensConfirmation(t *testing.T) {
 	m := newTestModel(testPkgs)
 
-	updated, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	updated, cmd := m.Update(tea.KeyPressMsg{Code: 'd'})
 
 	model := mustModel(t, updated)
-	if !model.isLoading {
-		t.Error("isLoading should be true after d key")
+	if !model.isConfirming {
+		t.Error("isConfirming should be true after d key")
 	}
-	if model.rowStatus[0] != rowUninstalling {
-		t.Errorf("rowStatus[0] = %q, want %q", model.rowStatus[0], rowUninstalling)
+	if model.confirmIdx != 0 {
+		t.Errorf("confirmIdx = %d, want 0", model.confirmIdx)
 	}
-	if cmd == nil {
-		t.Error("d should return a non-nil command")
+	if cmd != nil {
+		t.Error("d should return a nil cmd — uninstall starts only after confirmation")
 	}
 }
 
@@ -224,7 +258,7 @@ func TestHandleKey_delete_skipsWhenLoading(t *testing.T) {
 	m := newTestModel(testPkgs)
 	m.isLoading = true
 
-	_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	_, cmd := m.Update(tea.KeyPressMsg{Code: 'd'})
 	if cmd != nil {
 		t.Error("d while loading should return nil cmd")
 	}
@@ -234,7 +268,7 @@ func TestHandleKey_delete_skipsWhenRowNotIdle(t *testing.T) {
 	m := newTestModel(testPkgs)
 	m.rowStatus[0] = rowUninstalling
 
-	_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	_, cmd := m.Update(tea.KeyPressMsg{Code: 'd'})
 	if cmd != nil {
 		t.Error("d on non-idle row should return nil cmd")
 	}
