@@ -65,9 +65,41 @@ brew-ui/
 └── go.sum
 ```
 
-## Next Steps
+## Release With Homebrew (GoReleaser)
 
-[GoReleaser](https://github.com/goreleaser/goreleaser) can publish brew-potato as an actual Homebrew formula so anyone can install it with `brew install`. It handles cross-compilation, GitHub release assets, and writing the formula to a tap repo automatically.
+This repo is configured for GoReleaser v2 (`.goreleaser.yaml`) and GitHub Actions (`.github/workflows/release.yml`) to:
+
+- build release binaries for macOS and Linux
+- create GitHub release assets + checksums
+- publish a Homebrew cask into a tap repo (`mrSamDev/homebrew-tap`)
+
+### One-time setup
+
+1. Create the tap repo (or change `.goreleaser.yaml` to your own):
+   - `mrSamDev/homebrew-tap`
+2. Add GitHub secret in this repo:
+   - `GH_PAT`: a Personal Access Token with `repo` scope and write access to the tap repo
+
+### Create a release
+
+Version comes from the Git tag you push (for example `v0.1.0`):
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+That tag triggers the `Release` workflow and publishes:
+
+- GitHub release artifacts in `mrSamDev/brew-ui-potato`
+- `Casks/brew-potato.rb` in `mrSamDev/homebrew-tap`
+
+### Install via Homebrew
+
+```sh
+brew tap mrSamDev/homebrew-tap
+brew install --cask brew-potato
+```
 
 ## Keybindings
 
