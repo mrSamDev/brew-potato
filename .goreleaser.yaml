@@ -1,5 +1,3 @@
-version: 2
-
 project_name: brew-potato
 
 before:
@@ -7,60 +5,43 @@ before:
     - go mod tidy
 
 builds:
-  - id: brew-ui-darwin
-    main: ./main.go
+  - id: brew-potato
+    main: .
     binary: brew-potato
-    env:
-      - CGO_ENABLED=0
     goos:
       - darwin
-    goarch:
-      - amd64
-      - arm64
-  - id: brew-ui-linux
-    main: ./main.go
-    binary: brew-potato
-    env:
-      - CGO_ENABLED=0
-    goos:
       - linux
     goarch:
       - amd64
       - arm64
 
 archives:
-  - id: brew-ui-darwin-archive
-    ids:
-      - brew-ui-darwin
-    formats:
-      - tar.gz
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-  - id: brew-ui-linux-archive
-    ids:
-      - brew-ui-linux
-    formats:
-      - tar.gz
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - format: tar.gz
 
 checksum:
-  name_template: checksums.txt
+  name_template: "checksums.txt"
 
 release:
   github:
     owner: mrSamDev
     name: brew-potato
-  prerelease: auto
 
-homebrew_casks:
+brews:
   - name: brew-potato
-    ids:
-      - brew-ui-darwin-archive
-    binaries:
-      - brew-potato
-    homepage: "https://github.com/mrSamDev/brew-potato"
-    description: "Terminal UI for managing Homebrew packages."
-    directory: Casks
+    homepage: https://github.com/mrSamDev/brew-potato
+    description: A cute TUI for managing Homebrew apps
+    license: MIT
+
     repository:
       owner: mrSamDev
       name: homebrew-tap
       token: "{{ .Env.GITHUB_TOKEN }}"
+
+    commit_author:
+      name: mrSamDev
+      email: dev.sijo.sam@gmail.com
+
+    directory: Formula
+
+    install: |
+      bin.install "brew-potato"
