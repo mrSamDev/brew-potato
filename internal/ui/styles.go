@@ -36,11 +36,7 @@ var (
 	dialogStyle = lipgloss.NewStyle().
 			BorderStyle(lipgloss.RoundedBorder()).
 			BorderForeground(colorBorder).
-			Padding(1, dialogPaddingH)
-
-	dialogWarningStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("9")).
-				Bold(true)
+			Padding(1, 2)
 
 	keyHintStyle = lipgloss.NewStyle().
 			Foreground(colorAccent).

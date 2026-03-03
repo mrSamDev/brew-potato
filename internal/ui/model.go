@@ -21,9 +21,6 @@ const (
 	initialHeight = 20
 	// heightOffset accounts for title, border, and footer rows.
 	heightOffset = 7
-
-	// dialogPaddingH is the horizontal padding inside the confirmation dialog border.
-	dialogPaddingH = 2
 )
 
 type uninstallDoneMsg struct {

@@ -36,7 +36,12 @@ func (m Model) View() tea.View {
 			fmt.Sprintf("  %s  Loading packages...", m.spinner.View()),
 		)
 	case m.isConfirming:
-		footer = m.renderConfirmDialog()
+		pkg := m.packages[m.confirmIdx].Name
+		yKey := keyHintStyle.Render("y")
+		nKey := keyHintStyle.Render("n")
+		footer = footerStyle.Render(
+			fmt.Sprintf("  Uninstall %s?  %s yes    %s no", pkg, yKey, nKey),
+		)
 	case m.isLoading:
 		footer = footerStyle.Render(
 			fmt.Sprintf("  %s  Uninstalling %s...", m.spinner.View(), m.loadingPkg),
@@ -70,23 +75,5 @@ func renderAboutView() string {
 	return lipgloss.JoinVertical(lipgloss.Left,
 		lipgloss.NewStyle().MarginTop(1).Render(box),
 		back,
-	)
-}
-
-func (m Model) renderConfirmDialog() string {
-	pkg := m.packages[m.confirmIdx].Name
-
-	prompt := fmt.Sprintf("Uninstall  %s ?", dialogWarningStyle.Render(pkg))
-
-	yKey := keyHintStyle.Render("y")
-	nKey := keyHintStyle.Render("n")
-	keys := fmt.Sprintf("%s  confirm    %s  cancel", yKey, nKey)
-
-	box := dialogStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left, prompt, "", keys),
-	)
-
-	return lipgloss.NewStyle().MarginTop(1).Render(
-		lipgloss.PlaceHorizontal(m.width, lipgloss.Center, box),
 	)
 }

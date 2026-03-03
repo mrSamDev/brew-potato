@@ -12,8 +12,8 @@ import (
 )
 
 var testPkgs = []brew.Package{
-	{Name: "git", InstalledDate: "2023-11-14"},
-	{Name: "wget", InstalledDate: "2024-03-09"},
+	{Name: "git", InstalledDate: "2023-11-14", Type: "formula"},
+	{Name: "wget", InstalledDate: "2024-03-09", Type: "formula"},
 }
 
 func newTestModel(pkgs []brew.Package) Model {
@@ -21,6 +21,7 @@ func newTestModel(pkgs []brew.Package) Model {
 	columns := []table.Column{
 		{Title: "Package", Width: colWidthPackage},
 		{Title: "Installed", Width: colWidthInstalled},
+		{Title: "Type", Width: colWidthType},
 		{Title: "Status", Width: colWidthStatus},
 	}
 	t := table.New(
