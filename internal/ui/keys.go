@@ -45,7 +45,7 @@ func (m Model) handleAboutKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 
 func (m Model) handleConfirmKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
-	case "y", "enter":
+	case "y":
 		m.isConfirming = false
 		return m.startUninstall(m.confirmIdx)
 	case "n", "esc", "q", "ctrl+c":

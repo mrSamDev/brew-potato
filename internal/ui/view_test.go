@@ -91,11 +91,11 @@ func TestView_confirmingState(t *testing.T) {
 	if !strings.Contains(view, "wget") {
 		t.Error("confirming view should contain the package name")
 	}
-	if !strings.Contains(view, "confirm") {
-		t.Error("confirming view should contain confirm hint")
+	if !strings.Contains(view, "yes") {
+		t.Error("confirming view should contain yes hint")
 	}
-	if !strings.Contains(view, "cancel") {
-		t.Error("confirming view should contain cancel hint")
+	if !strings.Contains(view, "no") {
+		t.Error("confirming view should contain no hint")
 	}
 	if strings.Contains(view, "↑/↓  navigate") {
 		t.Error("confirming view should not show navigation hint")

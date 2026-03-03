@@ -15,15 +15,18 @@ func TestBuildRows_defaultStatus(t *testing.T) {
 	if rows[0][0] != "git" {
 		t.Errorf("name = %q, want %q", rows[0][0], "git")
 	}
-	if rows[0][2] != "User" {
-		t.Errorf("status = %q, want %q", rows[0][2], "User")
+	if rows[0][2] != "formula" {
+		t.Errorf("type = %q, want %q", rows[0][2], "formula")
+	}
+	if rows[0][3] != "" {
+		t.Errorf("status = %q, want empty", rows[0][3])
 	}
 }
 
 func TestBuildRows_uninstallingStatus(t *testing.T) {
 	rows := buildRows(testPkgs[:1], []string{rowUninstalling})
 
-	cell := rows[0][2]
+	cell := rows[0][3]
 	// lipgloss may strip ANSI in test environments; check plain text
 	if cell != "Uninstalling..." && cell != redStyle.Render("Uninstalling...") {
 		t.Errorf("status cell %q does not match expected uninstalling text", cell)
@@ -33,7 +36,7 @@ func TestBuildRows_uninstallingStatus(t *testing.T) {
 func TestBuildRows_deletedStatus(t *testing.T) {
 	rows := buildRows(testPkgs[:1], []string{rowDeleted})
 
-	cell := rows[0][2]
+	cell := rows[0][3]
 	if cell != "Deleted" && cell != redStyle.Render("Deleted") {
 		t.Errorf("status cell %q does not match expected deleted text", cell)
 	}
