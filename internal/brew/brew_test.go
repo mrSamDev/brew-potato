@@ -129,7 +129,15 @@ func TestFetchPackages_brewCommandFails(t *testing.T) {
 func TestUninstall_success(t *testing.T) {
 	setupFakeBrew(t, `{"formulae":[]}`)
 
-	if err := brew.Uninstall("git"); err != nil {
+	if err := brew.Uninstall(brew.Package{Name: "git", Type: "formula"}); err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestUninstall_cask_success(t *testing.T) {
+	setupFakeBrew(t, `{"formulae":[]}`)
+
+	if err := brew.Uninstall(brew.Package{Name: "iterm2", Type: "cask"}); err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 }
@@ -137,7 +145,7 @@ func TestUninstall_success(t *testing.T) {
 func TestUninstall_failure(t *testing.T) {
 	setupFailingBrew(t)
 
-	if err := brew.Uninstall("git"); err == nil {
+	if err := brew.Uninstall(brew.Package{Name: "git", Type: "formula"}); err == nil {
 		t.Fatal("expected error when brew fails, got nil")
 	}
 }

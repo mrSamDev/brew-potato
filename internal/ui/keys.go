@@ -56,9 +56,9 @@ func (m Model) handleConfirmKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) startUninstall(idx int) (tea.Model, tea.Cmd) {
-	pkg := m.packages[idx].Name
+	pkg := m.packages[idx]
 	m.isLoading = true
-	m.loadingPkg = pkg
+	m.loadingPkg = pkg.Name
 	m.rowStatus[idx] = rowUninstalling
 	m.table.SetRows(buildRows(m.packages, m.rowStatus))
 	return m, tea.Batch(

@@ -117,6 +117,11 @@ func filterAllInstalled(formulae []formula) []Package {
 	return pkgs
 }
 
-func Uninstall(pkg string) error {
-	return exec.Command("brew", "uninstall", pkg).Run()
+func Uninstall(pkg Package) error {
+	args := []string{"uninstall"}
+	if pkg.Type == "cask" {
+		args = append(args, "--cask")
+	}
+	args = append(args, pkg.Name)
+	return exec.Command("brew", args...).Run()
 }
